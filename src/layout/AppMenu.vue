@@ -5,23 +5,22 @@ import AppMenuItem from './AppMenuItem.vue';
 import { useStore } from 'vuex';
 
 const store = useStore();
-const department_name = ref(null);
-const department_id = ref(null);
+const permission = ref(null);
 
 onBeforeMount(async () => {
     // Menangani asynchronicity dengan menunggu nilai dari store
-    const storeDepartmentName = store.state.department_name;
-    // console.log(storeDepartmentName)
+    const storePermission = store.state.permission;
 
-    if (storeDepartmentName !== null) {
-        department_name.value = storeDepartmentName;
+    if (storePermission !== null) {
+        permission.value = storePermission;
+        // console.log("anjigngn", permission)
         initModel();
     } else {
-        // Tunggu hingga nilai department_name diupdate oleh fetch di AppLayout
+        // Tunggu hingga nilai diupdate oleh fetch di AppLayout
         store.watch(
-            (state) => state.department_name,
-            (newVal) => {                
-                department_name.value = newVal;
+            (state) => state.permission,
+            (newVal) => {       
+                permission.value = newVal;
                 initModel();
             }
         );
@@ -31,14 +30,68 @@ onBeforeMount(async () => {
 const model = ref([]);
 
 const initModel = () => {
+    const hasViewRolePermission = permission.value.some(perm => perm.name === 'view-role');
+    const hasViewUserPermission = permission.value.some(perm => perm.name === 'view-user');
+    const hasViewMasterPermission = permission.value.some(perm => perm.name === 'view-master');
+
     model.value = [
     {
         items: [
             { label: 'Dashboard', icon: 'pi pi-th-large pi-id-card', to: '/' },
-            ...(department_name.value === "Admin"
-                ? [{ label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' }]
-                : []),
-        ]
+            hasViewMasterPermission ? {
+                label: 'Master',
+                icon: 'fas fa-warehouse',
+                items: [
+                    {
+                        label: 'Material',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    {
+                        label: 'Storage Bin',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    {
+                        label: 'S. Location',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    { 
+                        label: 'Department', 
+                        icon: 'fas fa-circle',
+                        size: 6, 
+                    },
+                    {
+                        label: 'Cost Center',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    {
+                        label: 'Movement Type',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    {
+                        label: 'Good Recipient',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    {
+                        label: 'UoM',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    },
+                    {
+                        label: 'Adjs. Category',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                    }
+                ]
+            } : null,
+            hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
+            hasViewUserPermission ? { label: 'Users', icon: 'far fa-user' } : null
+        ].filter(item => item !== null)
     },
 ]};
 </script>

@@ -7,7 +7,8 @@ const store = createStore({
         department_name: null,
         department_id: null,
         user_name: null,
-        role: null
+        role: null,
+        permission: null
     },
     mutations: {
         setDepartmentName(state, name) {
@@ -22,11 +23,15 @@ const store = createStore({
         setrole(state, role) {
             state.role = role;
         },
+        setpermission(state, permission) {
+            state.permission = permission;
+        },
         resetState(state) {
             state.department_name = null;
             state.department_id = null;
             state.user_name = null;
             state.role = null;
+            state.permission = null;
             // Add other state reset handling if needed
         }
     },
@@ -45,6 +50,7 @@ const store = createStore({
                 commit('setDepartmentID', datauser.data.departement_id);
                 commit('setusername', datauser.data.name);
                 commit('setrole', datauser.data.roles);
+                commit('setpermission', datauser.data.permissions);
 
                 if (datauser.data.name_departement === null) {
                     commit('setDepartmentName', 'Admin');
