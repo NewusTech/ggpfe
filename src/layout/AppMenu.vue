@@ -90,7 +90,7 @@ const initModel = () => {
                 ]
             } : null,
             hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
-            hasViewUserPermission ? { label: 'Users', icon: 'far fa-user' } : null
+            hasViewUserPermission ? { label: 'Users', icon: 'far fa-user', to: '/user' } : null
         ].filter(item => item !== null)
     },
 ]};

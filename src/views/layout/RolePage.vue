@@ -141,7 +141,6 @@ const updateDatamaster = async () => {
     let messageeror = 'Failed to updated data Role';
 
     try {
-        const dobDate = new Date(datamaster.value.dob);
         const response = await fetch(`${apiBaseUrl}/api/roles/${datamaster.value.id}`, {
             method: 'PUT',
             headers: {
