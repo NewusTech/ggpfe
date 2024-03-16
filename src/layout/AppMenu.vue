@@ -61,6 +61,7 @@ const initModel = () => {
                         label: 'Department', 
                         icon: 'fas fa-circle',
                         size: 6, 
+                        to: '/master-department'
                     },
                     {
                         label: 'Cost Center',
@@ -71,21 +72,25 @@ const initModel = () => {
                         label: 'Movement Type',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-movement'
                     },
                     {
                         label: 'Good Recipient',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-recipient'
                     },
                     {
                         label: 'UoM',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-uom'
                     },
                     {
                         label: 'Adjs. Category',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-category'
                     }
                 ]
             } : null,
