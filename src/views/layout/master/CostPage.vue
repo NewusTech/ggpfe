@@ -14,16 +14,48 @@ const hasEditMasterPermission = ref(null);
 const hasDeleteMasterPermission = ref(null);
 
 const datamasters = ref([]);
-const modalHeader = ref("");
+const modalHeader = ref('');
 const datamasterDialog = ref(false);
 const deleteDatamasterDialog = ref(false);
 const datamaster = ref({});
 const dt = ref(null);
-const totalRecords = ref(null);
-const search = ref(null);
 const filters = ref({});
 const submitted = ref(false);
-const loading = ref(false);
+const departments = ref([]);
+const totalRecords = ref(null);
+const search = ref(null);
+
+const onPage = async (event) => {   
+    event.page+=1;
+
+    try {              
+        const response = await fetch(`${apiBaseUrl}/api/master/cost_center?page=${event.page}&sortField=${event.sortField}&sortOrder=${event.sortOrder}&search=${search.value != null ? search.value : ''}&paginate_count=${event.rows}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        const data = await response.json();
+        totalRecords.value = data.data.total;        
+        if (response.ok) {
+            datamasters.value = data.data;
+        } else {
+            throw new Error(data.error || 'Failed to fetch data from API');
+        }
+    } catch (error) {        
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch data from API', life: 5000 });
+    }
+};
+
+const onSearch = (event) => {    
+    if (event.target.value) {
+        search.value = event.target.value;
+    } else {
+        search.value = '';
+    }
+    onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
+};
 
 onBeforeMount(() => {
     const storePermission = store.state.permission;
@@ -48,42 +80,10 @@ onBeforeMount(() => {
     initFilters();
 });
 
-const onPage = async (event) => {    
-    event.page+=1;    
-
-    try {              
-        const response = await fetch(`${apiBaseUrl}/api/master/uom?page=${event.page}&sortField=${event.sortField}&sortOrder=${event.sortOrder}&search=${search.value != null ? search.value : ''}&paginate_count=${event.rows}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-        const data = await response.json();
-        totalRecords.value = data.data.total;        
-        if (response.ok) {
-            datamasters.value = data.data;
-        } else {
-            throw new Error(data.error || 'Failed to fetch data from API');
-        }
-    } catch (error) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch data from API', life: 5000 });
-    }
-};
-
-const onSearch = (event) => {    
-    if (event.target.value) {
-        search.value = event.target.value;
-    } else {
-        search.value = '';
-    }
-    onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
-};
-
 onMounted(async () => {
-    try {      
+    try {
         // Fetch data from Laravel API
-        const response = await fetch(`${apiBaseUrl}/api/master/uom`, {
+        const response = await fetch(`${apiBaseUrl}/api/master/cost_center`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,23 +91,41 @@ onMounted(async () => {
             }
         });
         const data = await response.json();
-        
+
         if (response.ok) {
             datamasters.value = data.data;
             totalRecords.value = data.data.total;
         } else {
             throw new Error(data.error || 'Failed to fetch data from API');
         }
-    } catch (error) {
+
+        // Ambil data departemen dari Laravel API
+        const responseDepartment = await fetch(`${apiBaseUrl}/api/master/department`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const dataDepartment = await responseDepartment.json();
+
+        if (responseDepartment.ok) {
+            departments.value = dataDepartment.data.data;
+        } else {
+            throw new Error(dataDepartment.error || 'Failed to fetch department data from API');
+        }
+    
+    } catch (error) {        
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch data from API', life: 5000 });
-    } 
+    }
 });
 
 const openNew = () => {
     datamaster.value = {};
     submitted.value = false;
     datamasterDialog.value = true;
-    modalHeader.value = "Add New UoM";
+    modalHeader.value = 'Add New Cost Center';
 };
 
 const hideDialog = () => {
@@ -117,14 +135,16 @@ const hideDialog = () => {
 
 const updateDatamaster = async () => {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/master/uom/${datamaster.value.id}`, {
+        const response = await fetch(`${apiBaseUrl}/api/master/cost_center/${datamaster.value.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             },
             body: JSON.stringify({
-                name: datamaster.value.name
+                name: datamaster.value.name,
+                desc: datamaster.value.desc,
+                department_id: datamaster.value.department.id
                 // tambahkan field lain sesuai kebutuhan
             })
         });
@@ -133,47 +153,47 @@ const updateDatamaster = async () => {
         if (response.ok) {
             await onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
             
-            toast.add({ severity: 'success', summary: 'Successful', detail: 'Data UoM Updated', life: 3000 });
+            toast.add({ severity: 'success', summary: 'Successful', detail: 'Data Cost Center Updated', life: 3000 });
         } else {
-            throw new Error(data.error || 'Failed to update data UoM');
+            throw new Error(data.error || 'Failed to update data Cost Center');
         }
-    } catch (error) {
+    } catch (error) {        
         toast.add({ severity: 'error', summary: 'Failed', detail: error, life: 5000 });
     }
 };
 
 const createDatamaster = async () => {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/master/uom`, {
+        const response = await fetch(`${apiBaseUrl}/api/master/cost_center`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             },
             body: JSON.stringify({
-                name: datamaster.value.name
+                name: datamaster.value.name,
+                desc: datamaster.value.desc,
+                department_id: datamaster.value.department.id
                 // tambahkan field lain sesuai kebutuhan
             })
         });
-        
         const data = await response.json();
 
         if (response.ok) {
-            onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
-            // totalRecords.value += 1;
-            toast.add({ severity: 'success', summary: 'Successful', detail: 'Data UoM Created', life: 3000 });
+            await onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
+
+            toast.add({ severity: 'success', summary: 'Successful', detail: 'Data Cost Center Created', life: 3000 });
         } else {
-            // console.log(response)
-            throw new Error(data.error || 'Failed to create data UoM');
+            throw new Error(data.error || 'Failed to create data Cost Center');
         }
-    } catch (error) {
+    } catch (error) {        
         toast.add({ severity: 'error', summary: 'Failed', detail: error, life: 5000 });
     }
 };
 
 const saveDatamaster = () => {
     submitted.value = true;
-    if (datamaster.value.name && datamaster.value.name.trim()) {
+    if (datamaster.value.name && datamaster.value.name.trim() && datamaster.value.desc && datamaster.value.desc.trim() && datamaster.value.department && datamaster.value.department.id !== null) {       
         if (datamaster.value.id) {
             updateDatamaster();
         } else {
@@ -185,19 +205,27 @@ const saveDatamaster = () => {
 };
 
 const editDatamaster = (editDatamaster) => {
-    datamaster.value = { ...editDatamaster };    
+    datamaster.value = { ...editDatamaster };
+       
+    // Find the corresponding department option based on the datamaster's department id
+    const selectedDepartment = departments.value.find(dep => dep.id === datamaster.value.department_id);
+   
+    // Set the datamaster's department to the selected option
+    datamaster.value.department = selectedDepartment;
+   
+
     datamasterDialog.value = true;
-    modalHeader.value = "Edit UoM";
+    modalHeader.value = 'Edit Cost Center';
 };
 
 const confirmDeleteDatamaster = (editDatamaster) => {
-    datamaster.value = editDatamaster;
+    datamaster.value = editDatamaster;    
     deleteDatamasterDialog.value = true;
 };
 
-const deleteDatamaster = async () => {
+const deleteDatamaster = async () => {   
     try {
-        const response = await fetch(`${apiBaseUrl}/api/master/uom/${datamaster.value.id}`, {
+        const response = await fetch(`${apiBaseUrl}/api/master/cost_center/${datamaster.value.id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -208,25 +236,26 @@ const deleteDatamaster = async () => {
 
         if (response.ok) {
             // Memuat ulang data setelah penghapusan berhasil
-            onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
+            await onPage({ page: 0, search: search.value, sortField: dt.value?.sortField, sortOrder: dt.value?.sortOrder, rows: dt.value?.rows });
+
             deleteDatamasterDialog.value = false;
             datamaster.value = {};
-            toast.add({ severity: 'success', summary: 'Successful', detail: 'Data UoM Deleted', life: 3000 });
+            toast.add({ severity: 'success', summary: 'Successful', detail: 'Cost Center Deleted', life: 3000 });
         } else {
-            if (response.status === 500 && data.error.includes('Integrity constraint violation')) {
+            if (response.status === 500 && data.error.includes('Integrity constraint violation')) {                
                 throw new Error('Tidak dapat hapus data ini, karena masih digunakan pada data lain');
             } else {
-                throw new Error(data.error || 'Failed to delete Storage Location');
+                throw new Error(data.error || 'Failed to delete Cost Center');
             }
         }
-    } catch (error) {
+    } catch (error) {        
         toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 5000 });
     }
 };
 
 const initFilters = () => {
     filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },        
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
 };
 </script>
@@ -239,16 +268,16 @@ const initFilters = () => {
                 <Toolbar class="mb-4 p-0" style="border: none; background-color: white">
                     <template v-slot:start>
                         <div class="my-2">
-                            <h5 class="m-0">Master UoM</h5>
+                            <h5 class="m-0">Master Cost Center</h5>
                         </div>
                     </template>
 
                     <template v-slot:end>
                         <Button v-if="hasCreateMasterPermission" label="Add New" icon="pi pi-plus-circle" class="p-button-primary mr-2" @click="openNew" />
                     </template>
-                </Toolbar>
-                <!-- <pre>{{ datamasters }}</pre> -->             
-                <DataTable                
+                </Toolbar>                
+
+                <DataTable
                     ref="dt"
                     :value="datamasters.data"  
                     lazy
@@ -273,11 +302,9 @@ const initFilters = () => {
                             <span class="block mt-2 md:mt-0 p-input-icon-left">
                                 <i class="pi pi-search" />
                                 <InputText v-model="filters['global'].value" placeholder="Search..." @input="onSearch($event)"/>
-                            </span>                            
+                            </span>
                         </div>
                     </template>
-                    <template #empty> No data found. </template>
-                    <template #loading> Loading customers data. Please wait. </template>
                     <Column field="rowIndex" headerStyle="min-width:5%;" style="text-align: center">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 100%">
@@ -286,14 +313,34 @@ const initFilters = () => {
                         </template>
                         <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                     </Column>
-                    <Column field="name"  headerStyle="width:60%; min-width:10rem;">
+                    <Column field="name" headerStyle="width:20%; min-width:10rem;">
                         <template #header>
-                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: right; width: 50%">
-                                <span style="width: 100%">Name</span>
+                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" :style="{ 'text-align': 'center', width: '100%' }">
+                                <span style="width: 100%">Cost Center</span>
                             </div>
                         </template>
                         <template #body="slotProps">
                             {{ slotProps.data.name }}
+                        </template>
+                    </Column>
+                    <Column field="desc" headerStyle="width:30%; min-width:10rem;">
+                        <template #header>
+                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" :style="{ 'text-align': 'center', width: '100%' }">
+                                <span style="width: 100%">Description</span>
+                            </div>
+                        </template>
+                        <template #body="slotProps">
+                            {{ slotProps.data.desc }}
+                        </template>
+                    </Column>
+                    <Column field="department" headerStyle="width:30%; min-width:10rem;">
+                        <template #header>
+                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 100%">
+                                <span style="width: 100%">Department</span>
+                            </div>
+                        </template>
+                        <template #body="slotProps">
+                            {{ slotProps.data.department.name }}
                         </template>
                     </Column>
                     <Column headerStyle="min-width:10rem;" style="text-align: center">
@@ -311,9 +358,31 @@ const initFilters = () => {
 
                 <Dialog v-model:visible="datamasterDialog" :style="{ width: '450px' }" :header="modalHeader" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="name">Name</label>
+                        <label for="name">Cost Center</label>
                         <InputText id="name" v-model.trim="datamaster.name" required="true" autofocus :class="{ 'p-invalid': submitted && !datamaster.name }" />
-                        <small class="p-invalid" v-if="submitted && !datamaster.name">Name is required.</small>
+                        <small class="p-invalid" v-if="submitted && !datamaster.name">Cost Center is required.</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="desc">Description</label>
+                        <InputText id="desc" v-model.trim="datamaster.desc" required="true" autofocus :class="{ 'p-invalid': submitted && !datamaster.desc }" />
+                        <small class="p-invalid" v-if="submitted && !datamaster.desc">Description is required.</small>
+                    </div>
+
+                    <div class="field">
+                        <label for="department" class="mb-3">Department</label>
+                        <Dropdown id="department" v-model="datamaster.department" :options="departments" optionLabel="name" placeholder="Select a Department" :class="{ 'p-invalid': submitted && !datamaster.department }" required="true">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value && slotProps.value.id">
+                                    {{ slotProps.value.name }}
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                        </Dropdown>
+                        <small class="p-invalid" v-if="submitted && !datamaster.department">Department is
+                            required.</small>
                     </div>
 
                     <template #footer>
@@ -326,12 +395,12 @@ const initFilters = () => {
                     <div class="flex align-items-center justify-content-center">
                         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                         <span v-if="datamaster"
-                            >Are you sure you want to delete <b>{{ datamaster.name }}</b
+                            >Are you sure you want to delete <b>{{ datamaster.cost_center }}</b
                             >?</span
                         >
                     </div>
                     <template #footer>
-                        <Button label="No" icon="pi pi-times" :style="{ background: 'white', color: 'red', borderColor: 'red', }" @click="deleteDatamasterDialog = false" />
+                        <Button label="No" icon="pi pi-times" :style="{ background: 'white', color: 'red', borderColor: 'red' }" @click="deleteDatamasterDialog = false" />
                         <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="deleteDatamaster" />
                     </template>
                 </Dialog>

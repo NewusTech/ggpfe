@@ -46,16 +46,19 @@ const initModel = () => {
                         label: 'Material',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-material'
                     },
                     {
                         label: 'Storage Bin',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-storagebin'
                     },
                     {
                         label: 'S. Location',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-slocation'
                     },
                     { 
                         label: 'Department', 
@@ -67,6 +70,7 @@ const initModel = () => {
                         label: 'Cost Center',
                         icon: 'fas fa-circle',
                         size: 6,
+                        to: '/master-cost'
                     },
                     {
                         label: 'Movement Type',
