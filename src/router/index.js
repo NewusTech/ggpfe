@@ -145,6 +145,12 @@ const router = createRouter({
                     meta: { requiresAuth: true }
                 },
                 {
+                    path: '/master-plant',
+                    name: 'master-plant',
+                    component: () => import('@/views/layout/master/PlantPage.vue'),
+                    meta: { requiresAuth: true }
+                },
+                {
                     path: '/master-category',
                     name: 'master-category',
                     component: () => import('@/views/layout/master/AdjcategoryPage.vue'),

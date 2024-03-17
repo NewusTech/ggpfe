@@ -91,6 +91,12 @@ const initModel = () => {
                         to: '/master-uom'
                     },
                     {
+                        label: 'Plant',
+                        icon: 'fas fa-circle',
+                        size: 6,
+                        to: '/master-plant'
+                    },
+                    {
                         label: 'Adjs. Category',
                         icon: 'fas fa-circle',
                         size: 6,
