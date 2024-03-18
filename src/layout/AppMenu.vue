@@ -33,11 +33,13 @@ const initModel = () => {
     const hasViewRolePermission = permission.value.some(perm => perm.name === 'view-role');
     const hasViewUserPermission = permission.value.some(perm => perm.name === 'view-user');
     const hasViewMasterPermission = permission.value.some(perm => perm.name === 'view-master');
+    const hasViewMaterialLocationPermission = permission.value.some(perm => perm.name === 'view-material-location');
 
     model.value = [
     {
         items: [
             { label: 'Dashboard', icon: 'pi pi-th-large pi-id-card', to: '/' },
+            hasViewMaterialLocationPermission ? { label: 'Material Loc.', icon: 'fas fa-id-card-clip', to: '/material-location' } : null,
             hasViewMasterPermission ? {
                 label: 'Master',
                 icon: 'fas fa-warehouse',

@@ -157,8 +157,8 @@ const router = createRouter({
                     meta: { requiresAuth: true }
                 },
                 {
-                    path: '/material-loc',
-                    name: 'material-loc',
+                    path: '/material-location',
+                    name: 'material-location',
                     component: () => import('@/views/layout/MateriallogPage.vue'),
                     meta: { requiresAuth: true }
                 },
