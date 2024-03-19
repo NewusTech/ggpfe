@@ -6,21 +6,35 @@ import { useStore } from 'vuex';
 
 const store = useStore();
 const permission = ref(null);
+const department = ref(null);
 
 onBeforeMount(async () => {
     // Menangani asynchronicity dengan menunggu nilai dari store
     const storePermission = store.state.permission;
+    const storedepartment = store.state.department_name;
+
 
     if (storePermission !== null) {
         permission.value = storePermission;
-        // console.log("anjigngn", permission)
         initModel();
     } else {
-        // Tunggu hingga nilai diupdate oleh fetch di AppLayout
         store.watch(
             (state) => state.permission,
-            (newVal) => {       
+            (newVal) => {
                 permission.value = newVal;
+                initModel();
+            }
+        );
+    }
+
+    if (storedepartment !== null) {
+        department.value = storedepartment;
+        initModel();
+    } else {
+        store.watch(
+            (state) => state.department,
+            (newVal) => {
+                department.value = newVal;
                 initModel();
             }
         );
@@ -33,84 +47,87 @@ const initModel = () => {
     const hasViewRolePermission = permission.value.some(perm => perm.name === 'view-role');
     const hasViewUserPermission = permission.value.some(perm => perm.name === 'view-user');
     const hasViewMasterPermission = permission.value.some(perm => perm.name === 'view-master');
+    const hasViewInboundPermission = permission.value.some(perm => perm.name === 'view-inbound');
     const hasViewMaterialLocationPermission = permission.value.some(perm => perm.name === 'view-material-location');
 
     model.value = [
-    {
-        items: [
-            { label: 'Dashboard', icon: 'pi pi-th-large pi-id-card', to: '/' },
-            hasViewMaterialLocationPermission ? { label: 'Material Loc.', icon: 'fas fa-id-card-clip', to: '/material-location' } : null,
-            hasViewMasterPermission ? {
-                label: 'Master',
-                icon: 'fas fa-warehouse',
-                items: [
-                    {
-                        label: 'Material',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-material'
-                    },
-                    {
-                        label: 'Storage Bin',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-storagebin'
-                    },
-                    {
-                        label: 'S. Location',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-slocation'
-                    },
-                    { 
-                        label: 'Department', 
-                        icon: 'fas fa-circle',
-                        size: 6, 
-                        to: '/master-department'
-                    },
-                    {
-                        label: 'Cost Center',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-cost'
-                    },
-                    {
-                        label: 'Movement Type',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-movement'
-                    },
-                    {
-                        label: 'Good Recipient',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-recipient'
-                    },
-                    {
-                        label: 'UoM',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-uom'
-                    },
-                    {
-                        label: 'Plant',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-plant'
-                    },
-                    {
-                        label: 'Adjs. Category',
-                        icon: 'fas fa-circle',
-                        size: 6,
-                        to: '/master-category'
-                    }
-                ]
-            } : null,
-            hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
-            hasViewUserPermission ? { label: 'Users', icon: 'far fa-user', to: '/user' } : null
-        ].filter(item => item !== null)
-    },
-]};
+        {
+            items: [
+                { label: 'Dashboard', icon: 'pi pi-th-large pi-id-card', to: '/' },
+                hasViewMaterialLocationPermission ? { label: 'Material Loc.', icon: 'fas fa-id-card-clip', to: '/material-location' } : null,
+                hasViewInboundPermission && department.value !== 'Central' ? { label: 'Inbound', icon: 'fas fa-reply', to: '/inbound' } : null,
+                hasViewMasterPermission ? {
+                    label: 'Master',
+                    icon: 'fas fa-warehouse',
+                    items: [
+                        {
+                            label: 'Material',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-material'
+                        },
+                        {
+                            label: 'Storage Bin',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-storagebin'
+                        },
+                        {
+                            label: 'S. Location',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-slocation'
+                        },
+                        {
+                            label: 'Department',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-department'
+                        },
+                        {
+                            label: 'Cost Center',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-cost'
+                        },
+                        {
+                            label: 'Movement Type',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-movement'
+                        },
+                        {
+                            label: 'Good Recipient',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-recipient'
+                        },
+                        {
+                            label: 'UoM',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-uom'
+                        },
+                        {
+                            label: 'Plant',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-plant'
+                        },
+                        {
+                            label: 'Adjs. Category',
+                            icon: 'fas fa-circle',
+                            size: 6,
+                            to: '/master-category'
+                        }
+                    ]
+                } : null,
+                hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
+                hasViewUserPermission ? { label: 'Users', icon: 'far fa-user', to: '/user' } : null
+            ].filter(item => item !== null)
+        },
+    ]
+};
 </script>
 
 <template>

@@ -47,16 +47,12 @@ const store = createStore({
                 });
                 const datauser = await responseUSER.json();
 
-                commit('setDepartmentID', datauser.data.departement_id);
+                commit('setDepartmentID', datauser.data.department_id);
                 commit('setusername', datauser.data.name);
                 commit('setrole', datauser.data.roles);
                 commit('setpermission', datauser.data.permissions);
-
-                if (datauser.data.name_departement === null) {
-                    commit('setDepartmentName', 'Admin');
-                } else {
-                    commit('setDepartmentName', datauser.data.name_departement);
-                }
+                commit('setDepartmentName', datauser.data.department?.name);
+                
             } catch (error) {
                 console.error('Error fetching department data:', error);
                 // Handle errors as needed
