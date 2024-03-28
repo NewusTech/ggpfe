@@ -300,6 +300,8 @@ const saveDatamaster = () => {
         datamaster.value.s_loc.id !== null &&
         datamaster.value.email &&
         datamaster.value.email.trim() &&
+        datamaster.value.department &&
+        datamaster.value.department !==null &&
         datamaster.value.roles.length > 0
     ) {
         if (datamaster.value.user_id) {
@@ -561,8 +563,8 @@ const initFilters = () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            <span v-if="hasEditUserPermission" @click="editDatamaster(slotProps.data)" style="cursor: pointer; color: #5e42ce" class="mr-3">Edit</span>
-                            <span v-if="hasDeleteUserPermission" @click="confirmDeleteDatamaster(slotProps.data)" style="cursor: pointer; color: #ff5742">Delete</span>
+                            <span v-if="hasEditUserPermission && (slotProps.data.name !== 'Admin')" @click="editDatamaster(slotProps.data)" style="cursor: pointer; color: #5e42ce" class="mr-3">Edit</span>
+                            <span v-if="hasDeleteUserPermission && (slotProps.data.name !== 'Admin')" @click="confirmDeleteDatamaster(slotProps.data)" style="cursor: pointer; color: #ff5742">Delete</span>
                         </template>
                     </Column>
                 </DataTable>
@@ -596,9 +598,7 @@ const initFilters = () => {
 
                         <div class="field" style="width: 49%; margin-left: auto">
                             <label for="department" class="mb-3">Department</label>
-                            <Dropdown id="department" v-model="datamaster.department" :options="departments" optionLabel="name" placeholder="Select">
-                                <!-- :class="{ 'p-invalid': submitted && !datamaster.department }" -->
-                                <!-- required="true" -->
+                            <Dropdown id="department" v-model="datamaster.department" :options="departments" optionLabel="name" placeholder="Select" :class="{ 'p-invalid': submitted && !datamaster.department }" required="true" >
                                 <template #value="slotProps">
                                     <div v-if="slotProps.value && slotProps.value.id">
                                         {{ slotProps.value.name }}
@@ -608,7 +608,7 @@ const initFilters = () => {
                                     </span>
                                 </template>
                             </Dropdown>
-                            <!-- <small class="p-invalid" v-if="submitted && !datamaster.department">Department is required.</small> -->
+                            <small class="p-invalid" v-if="submitted && !datamaster.department">Department is required.</small>
                         </div>
                     </div>
 

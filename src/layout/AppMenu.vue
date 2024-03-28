@@ -13,6 +13,7 @@ onBeforeMount(async () => {
     const storePermission = store.state.permission;
     const storedepartment = store.state.department_name;
 
+    console.log("adsnjikasduihasdbhadshdasbhasdhk", store.state)
 
     if (storePermission !== null) {
         permission.value = storePermission;
@@ -48,6 +49,7 @@ const initModel = () => {
     const hasViewUserPermission = permission.value.some(perm => perm.name === 'view-user');
     const hasViewMasterPermission = permission.value.some(perm => perm.name === 'view-master');
     const hasViewInboundPermission = permission.value.some(perm => perm.name === 'view-inbound');
+    const hasViewOutboundPermission = permission.value.some(perm => perm.name === 'view-outbound');
     const hasViewMaterialLocationPermission = permission.value.some(perm => perm.name === 'view-material-location');
 
     model.value = [
@@ -55,7 +57,33 @@ const initModel = () => {
             items: [
                 { label: 'Dashboard', icon: 'pi pi-th-large pi-id-card', to: '/' },
                 hasViewMaterialLocationPermission ? { label: 'Material Loc.', icon: 'fas fa-id-card-clip', to: '/material-location' } : null,
+
                 hasViewInboundPermission && department.value !== 'Central' ? { label: 'Inbound', icon: 'fas fa-reply', to: '/inbound' } : null,
+
+                hasViewOutboundPermission && (department.value === 'Central') ? { label: 'Outbound', icon: 'fas fa-reply', to: '/outbound' } : null,
+
+                hasViewOutboundPermission && (department.value === 'Sparepart' || !department.value) ? {
+                    label: 'Outbound',
+                    icon: 'fas fa-reply',
+                    items: [
+                        { label: 'Overview', icon: 'fas fa-circle', size: 6, to: '/outbound-overview' },
+                        // { label: 'Request', icon: 'fas fa-circle', size: 6, to: '/outbound-request' }
+                    ]
+                } : null,
+
+                // ...(department_name.value === "Sparepart"
+                //     ? [
+                //         {
+                //             label: 'Outbound',
+                //             icon: 'fas fa-reply',
+                //             items: [
+                //                 { label: 'Overview', icon: 'fas fa-circle', size: 6, to: '/outbound-overview' },
+                //                 { label: 'Request', icon: 'fas fa-circle', size: 6, to: '/outbound-request' }
+                //             ]
+                //         }
+                //     ]
+                //     : []),
+
                 hasViewMasterPermission ? {
                     label: 'Master',
                     icon: 'fas fa-warehouse',
@@ -122,7 +150,9 @@ const initModel = () => {
                         }
                     ]
                 } : null,
+
                 hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
+
                 hasViewUserPermission ? { label: 'Users', icon: 'far fa-user', to: '/user' } : null
             ].filter(item => item !== null)
         },

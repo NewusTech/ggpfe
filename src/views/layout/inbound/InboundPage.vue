@@ -310,7 +310,8 @@ const releaseToSAP = async () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            <p class="text-primary">{{ slotProps.data.status === 1 ? 'Complete' : 'On Progress' }}</p>
+                            <p style="color: green;" v-if="slotProps.data.status == 2">Complete</p>
+                            <p class="text-primary" v-else>On Progress</p>
                         </template>
                     </Column>
                 </DataTable>

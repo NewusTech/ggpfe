@@ -12,21 +12,33 @@ const router = useRouter();
 const toast = useToast();
 
 const selecteddata = ref(null);
+const dataReceived = ref(null);
 const department_id = ref(null);
-const datamasters = ref({});
+const datamasters = ref([]);
 const dt = ref(null);
 const filters = ref({});
 const loading = ref(null);
 const idfromroute = ref(null);
 
-const items = ref([{ label: 'Inbound', route: '/inbound' }, { label: 'Detail' }]);
+const items = ref([{ label: 'Outbound', route: '/outbound' }, { label: 'Detail' }]);
+
+const formatDate = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return date.toLocaleDateString(undefined, options);
+};
 
 onBeforeMount(async () => {
+    const storeDepartmentid = store.state.department_id;
+    console.log('plis', storeDepartmentid);
+
+    dataReceived.value = router.currentRoute.value.meta ? router.currentRoute.value.meta.dataToSend.value : null;
+    console.log('Received data:', dataReceived.value);
 });
 
 const onPage = async () => {
     try {
-        const apiUrl = `${apiBaseUrl}/api/inbound/${idfromroute.value}`;
+        const apiUrl = `${apiBaseUrl}/api/outbound/${idfromroute.value}`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -36,6 +48,7 @@ const onPage = async () => {
             }
         });
         const data = await response.json();
+        console.log(data, "anjingg")
 
         if (response.ok) {
             datamasters.value = data.data;
@@ -48,8 +61,7 @@ const onPage = async () => {
 };
 
 onMounted(async () => {
-    idfromroute.value = router.currentRoute.value.params.id;  
-  
+    idfromroute.value = router.currentRoute.value.params.id;    
     try {
         // get data user
         const responseUSER = await fetch(`${apiBaseUrl}/api/auth/get_user/`, {
@@ -64,8 +76,9 @@ onMounted(async () => {
         department_id.value = datauser.data.departement_id;
 
         //get data master
-        const apiUrl = `${apiBaseUrl}/api/inbound/${idfromroute.value}`; 
-       
+        const apiUrl = `${apiBaseUrl}/api/outbound/${idfromroute.value}`;                
+
+        // Fetch data from Laravel API
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
@@ -74,6 +87,7 @@ onMounted(async () => {
             }
         });
         const data = await response.json();
+        console.log(data, "anjingg")
 
         if (response.ok) {
             datamasters.value = data.data;
@@ -81,27 +95,17 @@ onMounted(async () => {
             throw new Error(data.error || 'Failed to fetch data from API');
         }
     } catch (error) {
-        // console.error('Error fetching data from API:', error);
+        console.error('Error fetching data from API:', error);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch data from API', life: 5000 });
     }
 });
 
 
-const formatDate = (dateTimeString) => {
-    if(dateTimeString){
-    const date = new Date(dateTimeString);
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return date.toLocaleDateString(undefined, options);
-    }else{
-        return '-';
-    }
-};
-
 const releaseToSAP = async () => {
     try {
         const selectedIds = selecteddata.value.map(item => item.id);
 
-        const apiUrl = `${apiBaseUrl}/api/sap/releaseSAPin`;
+        const apiUrl = `${apiBaseUrl}/api/sap/releaseSAPout`;
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -142,10 +146,10 @@ const releaseToSAP = async () => {
         </template>
     </Breadcrumb>
     <div class="grid">
+        <pre>{{ datamasters }}</pre>
         <div class="col-12">
             <div class="card">
                 <Toast />
-                <!-- <pre>{{datamasters}}</pre> -->
                 <Toolbar class="mb-4 p-0" style="border: none; background-color: white">
                     <template v-slot:start>
                         <div class="my-1">
@@ -163,14 +167,13 @@ const releaseToSAP = async () => {
                 </Toolbar>
                 <Divider />
                 <div class="grid grid-nogutter">
-
                     <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
-                        <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Inbound Date</small></div>
+                        <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Outbound Date</small></div>
                         <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ formatDate(datamasters[0]?.date) }}</small></div>
                     </div>
                     <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">
-                        <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>Storage Location</small></div>
-                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.s_loc}}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>Movement Type</small></div>
+                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.mvt_code}}</small></div>
                     </div>
 
                     <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
@@ -178,27 +181,43 @@ const releaseToSAP = async () => {
                         <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.ref_code}}</small></div>
                     </div>
                     <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">
-                        <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>From</small></div>
-                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.from}}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>Good Recipient</small></div>
+                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.good_recepient}}</small></div>
                     </div>
 
                     <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
                         <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Type</small></div>
                         <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.ref_type}}</small></div>
                     </div>
+                    <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">
+                        <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>Cost Center</small></div>
+                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.cost_center}}</small></div>
+                    </div>
 
-                    <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">                      
-                    </div>           
+                    <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
+                        <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Storage Location</small></div>
+                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.s_loc}}</small></div>
+                    </div>
+                    <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">
+                        <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>Order</small></div>
+                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.order}}</small></div>
+                    </div>
+
+                    <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
+                        <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Receiving S. Loc</small></div>
+                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.receiving_s_loc}}</small></div>
+                    </div>
+                    <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter"></div>
                 </div>
-                <Divider class="mb-5" />
+                <Divider class="mb-3" />
 
                 <Toolbar class="bg-white border-none">
                     <template v-slot:end>
-                        <Button label="Release to SAP" class="p-button-primary" v-if="selecteddata && selecteddata.length" @click="releaseToSAP"/>
+                        <Button label="Release to SAP" class="p-button-primary" v-if="selecteddata && selecteddata.length" @click="releaseToSAP" />
                     </template>
                 </Toolbar>
 
-                <DataTable ref="dt" :value="datamasters[0]?.inbound_material" v-model:selection="selecteddata" :filters="filters" :loading="loading" dataKey="id" class="p-datatable-gridlines" :rows="10" responsiveLayout="scroll">
+                <DataTable ref="dt" :value="datamasters[0]?.materials" v-model:selection="selecteddata" :filters="filters" :loading="loading" dataKey="id" class="p-datatable-gridlines" :rows="10" responsiveLayout="scroll">
                     <Column selectionMode="multiple" headerStyle="width:3%"></Column>
                     <Column field="rowIndex" style="text-align: center">
                         <template #header>
@@ -302,7 +321,19 @@ const releaseToSAP = async () => {
                 </DataTable>
 
                 <div class="my-5"></div>
-          
+
+                <Accordion :multiple="true">
+                    <AccordionTab header="Outbound Notes" class="p-0 m-0">
+                        <p class="m-0">
+                            {{datamasters[0]?.notes}}
+                        </p>
+                    </AccordionTab>
+                    <AccordionTab header="Confirmation of Receipt" class="p-0 m-0">
+                        <p class="m-0">Good Recipient : {{ datamasters[0]?.good_recepient}}</p>
+                        <p><img v-if="datamasters[0]?.photo" :src='datamasters[0]?.photo' alt="Receipt Image" style="width : 100%;" /></p>
+                    </AccordionTab>
+                </Accordion>
+
             </div>
         </div>
     </div>
