@@ -12,20 +12,16 @@ const router = useRouter();
 const toast = useToast();
 
 const selecteddata = ref(null);
-const dataReceived = ref(null);
 const department_id = ref(null);
 const datamasters = ref({});
 const dt = ref(null);
 const filters = ref({});
 const loading = ref(null);
-const s_locs = ref([]);
 const idfromroute = ref(null);
 
 const items = ref([{ label: 'Inbound', route: '/inbound' }, { label: 'Detail' }]);
 
 onBeforeMount(async () => {
-    const storeDepartmentid = store.state.department_id;
-    dataReceived.value = router.currentRoute.value.meta ? router.currentRoute.value.meta.dataToSend.value : null;
 });
 
 const onPage = async () => {
@@ -84,28 +80,12 @@ onMounted(async () => {
         } else {
             throw new Error(data.error || 'Failed to fetch data from API');
         }
-
-        // Ambil data departemen dari Laravel API
-        const response_location = await fetch(`${apiBaseUrl}/api/sloc/master_storage_location`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        const datastorage = await response_location.json();
-
-        if (response_location.ok) {
-            s_locs.value = datastorage.data.data;
-        } else {
-            throw new Error(datastorage.error || 'Failed to fetch storage location data from API');
-        }
     } catch (error) {
         // console.error('Error fetching data from API:', error);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch data from API', life: 5000 });
     }
 });
+
 const releaseToSAP = async () => {
     try {
         const selectedIds = selecteddata.value.map(item => item.id);
@@ -163,7 +143,7 @@ const releaseToSAP = async () => {
                     </template>
                     <template v-slot:end>
                         <div class="my-1">
-                            <p class="m-0" style="color: black">Status : {{datamasters.status}}</p>
+                            <p class="m-0" style="color: black">Status : {{datamasters[0]?.status}}</p>
                         </div>
                     </template>
                 </Toolbar>
@@ -172,25 +152,25 @@ const releaseToSAP = async () => {
 
                     <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
                         <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Inbound Date</small></div>
-                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters.date }}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.date }}</small></div>
                     </div>
                     <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">
                         <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>Storage Location</small></div>
-                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters.s_loc}}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.s_loc}}</small></div>
                     </div>
 
                     <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
                         <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Reference Doc</small></div>
-                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters?.inbound_material}}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.ref_code}}</small></div>
                     </div>
                     <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">
                         <div class="px-3 py-1 col-6 md:col-5 lg:col-5"><small>From</small></div>
-                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters.from}}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-7 lg:col-7"><small>: {{ datamasters[0]?.from}}</small></div>
                     </div>
 
                     <div class="col-12 md:col-7 lg:col-7 grid grid-nogutter">
                         <div class="px-3 py-1 col-6 md:col-4 lg:col-4"><small>Type</small></div>
-                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters.ref_type}}</small></div>
+                        <div class="px-3 py-1 col-6 md:col-8 lg:col-8"><small>: {{ datamasters[0]?.ref_type}}</small></div>
                     </div>
 
                     <div class="col-12 md:col-5 lg:col-5 grid grid-nogutter">                      
@@ -204,9 +184,9 @@ const releaseToSAP = async () => {
                     </template>
                 </Toolbar>
 
-                <DataTable ref="dt" :value="datamasters.inbound_material" v-model:selection="selecteddata" :filters="filters" :loading="loading" dataKey="id" class="p-datatable-gridlines" :rows="10" responsiveLayout="scroll">
-                    <Column selectionMode="multiple" headerStyle="width:5%"></Column>
-                    <Column field="rowIndex" headerStyle="width:5%;" style="text-align: center">
+                <DataTable ref="dt" :value="datamasters[0]?.inbound_material" v-model:selection="selecteddata" :filters="filters" :loading="loading" dataKey="id" class="p-datatable-gridlines" :rows="10" responsiveLayout="scroll">
+                    <Column selectionMode="multiple" headerStyle="width:3%"></Column>
+                    <Column field="rowIndex" style="text-align: center">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 100%">
                                 <span style="width: 100%">No</span>
@@ -214,7 +194,7 @@ const releaseToSAP = async () => {
                         </template>
                         <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                     </Column>
-                    <Column field="material_code" headerStyle="width:10%;">
+                    <Column field="material_code">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" :style="{ 'text-align': 'center', width: '90%' }">
                                 <span style="width: 100%">Material Code</span>
@@ -224,7 +204,7 @@ const releaseToSAP = async () => {
                             {{ slotProps.data.material_code }}
                         </template>
                     </Column>
-                    <Column field="material_description" headerStyle="width:15%;">
+                    <Column field="material_description">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
                                 <span style="width: 100%">Material Description</span>
@@ -234,7 +214,7 @@ const releaseToSAP = async () => {
                             {{ slotProps.data.material_description }}
                         </template>
                     </Column>
-                    <Column field="item" headerStyle="width:10%;">
+                    <Column field="item">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" :style="{ 'text-align': 'center', width: '90%' }">
                                 <span style="width: 100%">Item</span>
@@ -244,7 +224,7 @@ const releaseToSAP = async () => {
                             {{ slotProps.data.item }}
                         </template>
                     </Column>
-                    <Column field="plant" headerStyle="width:10%;">
+                    <Column field="plant">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
                                 <span style="width: 100%">Plant</span>
@@ -254,7 +234,7 @@ const releaseToSAP = async () => {
                             {{ slotProps.data.plant }}
                         </template>
                     </Column>
-                    <Column field="qty" headerStyle="width:10%;">
+                    <Column field="qty">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
                                 <span style="width: 100%">Qty</span>
@@ -264,17 +244,17 @@ const releaseToSAP = async () => {
                             {{ slotProps.data.qty }}
                         </template>
                     </Column>
-                    <Column field="uom" headerStyle="width:10%;">
+                    <Column field="uom">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
                                 <span style="width: 100%">UoM</span>
                             </div>
                         </template>
                         <template #body="slotProps">
-                            {{ slotProps.data.uom_name }}
+                            {{ slotProps.data.uom }}
                         </template>
                     </Column>
-                    <Column field="batch" headerStyle="width:10%;">
+                    <Column field="batch">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
                                 <span style="width: 100%">Batch</span>
@@ -284,7 +264,7 @@ const releaseToSAP = async () => {
                             {{ slotProps.data.batch }}
                         </template>
                     </Column>
-                    <Column field="s_bin" headerStyle="width:15%;">
+                    <Column field="s_bin">
                         <template #header>
                             <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
                                 <span style="width: 100%">Storage Bin</span>
@@ -292,6 +272,17 @@ const releaseToSAP = async () => {
                         </template>
                         <template #body="slotProps">
                             {{ slotProps.data.s_bin }}
+                        </template>
+                    </Column>
+                    <Column field="status">
+                        <template #header>
+                            <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center" style="text-align: center; width: 90%">
+                                <span style="width: 100%">Status</span>
+                            </div>
+                        </template>
+                        <template #body="slotProps">
+                            <p style="color: green;" v-if="slotProps.data.status == 2">Complete</p>
+                            <p class="text-primary" v-else>On Progress</p>
                         </template>
                     </Column>
                 </DataTable>
