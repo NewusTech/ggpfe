@@ -101,7 +101,7 @@ const releaseToSAP = async () => {
     try {
         const selectedIds = selecteddata.value.map(item => item.id);
 
-        const apiUrl = `${apiBaseUrl}/api/sap/releaseSAPin`;
+        const apiUrl = `${apiBaseUrl}/api/inbound/release`;
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -155,7 +155,7 @@ const releaseToSAP = async () => {
                     <template v-slot:end>
                         <div class="my-1">
                             <p class="m-0" style="color: black">Status : 
-                                <span style="color: green;" v-if="datamasters[0]?.status == 2">Complete</span>
+                                <span style="color: green;" v-if="datamasters[0]?.status == 2 || datamasters[0]?.status == 9">Complete</span>
                                 <span class="text-primary" v-else>On Progress</span>
                             </p>
                         </div>
@@ -295,7 +295,7 @@ const releaseToSAP = async () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            <p style="color: green;" v-if="slotProps.data.status == 2">Complete</p>
+                            <p style="color: green;" v-if="slotProps.data.status == 2 || slotProps.data.status == 9">Complete</p>
                             <p class="text-primary" v-else>On Progress</p>
                         </template>
                     </Column>

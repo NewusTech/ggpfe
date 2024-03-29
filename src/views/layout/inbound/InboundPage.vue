@@ -154,7 +154,7 @@ const initFilters = () => {
 };
 
 const openRelease = async() => {
-    datarelease.value = datamasters.value.filter(item => item.status === 1)
+    datarelease.value = datamasters.value.filter(item => item.status === 1 || item.status === 2)
         .map(item => ({
             ...item,
             materials: item.materials.filter(material => material.status === 2)
@@ -173,7 +173,7 @@ const releaseToSAP = async () => {
     try {
         const selectedIds = selectedProduct2.value.map(item => item.id);
         console.log('kamop', selectedIds)
-        const apiUrl = `${apiBaseUrl}/api/sap/releaseSAPin`;
+        const apiUrl = `${apiBaseUrl}/api/inbound/release`;
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -358,14 +358,14 @@ const releaseToSAP = async () => {
                             <div class="p-1">
                                 <DataTable v-model:selection="selectedProduct2" :value="slotProps.data.materials" responsiveLayout="scroll" v-if="slotProps.data.materials.length">
                                     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                                    <Column field="material_code" header="Material Code">
+                                    <Column field="code" header="Material Code">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.material_code }}
+                                            {{ slotProps.data.code }}
                                         </template>
                                     </Column>
-                                    <Column field="material_description" header="Material Desciption">
+                                    <Column field="desc" header="Material Desciption">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.material_description }}
+                                            {{ slotProps.data.desc }}
                                         </template>
                                     </Column>
                                     <Column field="plant" header="Plant">
@@ -385,7 +385,7 @@ const releaseToSAP = async () => {
                                     </Column>
                                     <Column field="date" header="Requirement Date">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.date }}
+                                            {{ formatDate(slotProps.data.date)}}
                                         </template>
                                     </Column>
                                 </DataTable>
