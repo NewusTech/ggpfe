@@ -67,7 +67,7 @@ const initModel = () => {
                     icon: 'fas fa-reply',
                     items: [
                         { label: 'Overview', icon: 'fas fa-circle', size: 6, to: '/outbound-overview' },
-                        // { label: 'Request', icon: 'fas fa-circle', size: 6, to: '/outbound-request' }
+                        { label: 'Request', icon: 'fas fa-circle', size: 6, to: '/outbound-request' }
                     ]
                 } : null,
 

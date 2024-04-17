@@ -101,9 +101,13 @@ onBeforeMount(async () => {
 });
 
 const formatDate = (dateTimeString) => {
+    if(dateTimeString){
     const date = new Date(dateTimeString);
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     return date.toLocaleDateString(undefined, options);
+    }else{
+        return '-';
+    }
 };
 
 onMounted(async () => {
@@ -151,7 +155,7 @@ const initFilters = () => {
 };
 
 const openNew = () => {
-    datamastersReleaseSAP.value = datamasters.value.filter(item => item.status === 1)
+    datamastersReleaseSAP.value = datamasters.value.filter(item => item.status === 1 || item.status === 2)
         .map(item => ({
             ...item,
             materials: item.materials.filter(material => material.status === 2)
@@ -168,7 +172,7 @@ const releaseToSAP = async () => {
     try {
         const selectedIds = selecteddata2.value.map(item => item.id);
 
-        const apiUrl = `${apiBaseUrl}/api/sap/releaseSAPout`;
+        const apiUrl = `${apiBaseUrl}/api/outbound/release`;
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -209,7 +213,7 @@ const releaseToSAP = async () => {
                     </template>
                 </Toolbar>
 
-                <!-- <pre>{{ datamasters }}</pre> -->
+                <pre>{{ datamasters }}</pre>
 
                 <DataTable ref="dt" :value="datamasters" lazy :filters="filters" :first="first" @page="onPage($event)"
                     :last="totalRecords" :loading="loading" :totalRecords="totalRecords" dataKey="id"
@@ -414,7 +418,7 @@ const releaseToSAP = async () => {
                                 {{ slotProps.data.s_loc }}
                             </template>
                         </Column>
-                        <Column field="mvt_id" headerStyle="width:10%;">
+                        <Column field="mvt_code" headerStyle="width:10%;">
                             <template #header>
                                 <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center"
                                     style="text-align: center; width: 90%">
@@ -422,7 +426,7 @@ const releaseToSAP = async () => {
                                 </div>
                             </template>
                             <template #body="slotProps">
-                                {{ slotProps.data.mvt_id }}
+                                {{ slotProps.data.mvt_code }}
                             </template>
                         </Column>
                         <Column field="good_recepient" headerStyle="width:10%;">
@@ -455,7 +459,7 @@ const releaseToSAP = async () => {
                                 </div>
                             </template>
                             <template #body="slotProps">
-                                <p class="text-primary">{{ slotProps.data.status === 1 ? 'Complete' : 'On Progress' }}</p>
+                                <p class="text-primary">{{ slotProps.data.status === 2 ? 'Complete' : 'On Progress' }}</p>
                             </template>
                         </Column>
                         <Column header="Action" :expander="true" headerStyle="min-width: 3rem" />
@@ -465,14 +469,14 @@ const releaseToSAP = async () => {
                                 <DataTable v-model:selection="selecteddata2" v-if="slotProps.data.materials.length > 0"
                                     :value="slotProps.data.materials" responsiveLayout="scroll">
                                     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                                    <Column field="material_code" header="Material Code">
+                                    <Column field="code" header="Material Code">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.material_code }}
+                                            {{ slotProps.data.code }}
                                         </template>
                                     </Column>
-                                    <Column field="material_description" header="Material Desciption">
+                                    <Column field="desc" header="Material Desciption">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.material_description }}
+                                            {{ slotProps.data.desc }}
                                         </template>
                                     </Column>
                                     <Column field="plant" header="Plant">
@@ -490,9 +494,9 @@ const releaseToSAP = async () => {
                                             {{ slotProps.data.uom }}
                                         </template>
                                     </Column>
-                                    <Column field="s_bin" header="Storage Bin">
+                                    <Column field="sbin" header="Storage Bin">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.s_bin }}
+                                            {{ slotProps.data.sbin }}
                                         </template>
                                     </Column>
                                     <Column field="batch" header="Batch">
@@ -502,7 +506,7 @@ const releaseToSAP = async () => {
                                     </Column>
                                     <Column field="qty" header="Requirement Date">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.date }}
+                                            {{ formatDate(slotProps.data.date)}}
                                         </template>
                                     </Column>
                                 </DataTable>

@@ -350,7 +350,7 @@ const releaseToSAP = async () => {
                         </Column>
                         <Column field="status" header="Status">
                             <template #body="slotProps">
-                                {{ slotProps.data.status === 1 ? "Completed" : "On Progress" }}
+                                {{ slotProps.data.status === 2 ? "Completed" : "On Progress" }}
                             </template>
                         </Column>
                         <Column header="Action" :expander="true" headerStyle="min-width: 3rem" />
