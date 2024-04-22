@@ -15,25 +15,18 @@ const dataReceived = ref(null)
 const department_id = ref(null);
 const datamasters = ref([]);
 const modalHeader = ref('');
-const datamasterDialog = ref(false);
-const deleteDatamasterDialog = ref(false);
-const datamaster = ref({});
 const dt = ref(null);
 const filters = ref({});
-const submitted = ref(false);
 const totalRecords = ref(null);
 const search = ref(null);
 const first = ref(0);
 const loading = ref(null);
-const plant = ref([
-    { label: '1000', value: 1000 },
-    { label: '2003', value: 2003 }
-]);
 const isKepalaBagian = ref(false);
 const isAdminBagian = ref(false);
 const RefDialog = ref(false);
 const AproveDialog = ref(false);
 const dataproval = ref({});
+const dataref = ref({});
 
 const selecteddata = ref();
 const selecteddata2 = ref();
@@ -44,7 +37,7 @@ const onPage = async (event) => {
     event.page += 1;
 
     try {
-        const response = await fetch(`${apiBaseUrl}/api/outbound/request?page=${event.page}&sortField=${event.sortField}&sortOrder=${event.sortOrder}search=${search.value != null ? search.value : ''}`, {
+        const response = await fetch(`${apiBaseUrl}/api/outbound/request?page=${event.page}&sortField=${event.sortField}&sortOrder=${event.sortOrder}&search=${search.value != null ? search.value : ''}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -128,8 +121,29 @@ onMounted(async () => {
     }
 });
 
-const openNew = () => {
-    // submitted.value = false;
+const openNew = async () => {
+    const apiUrl = `${apiBaseUrl}/api/outbound/request/referencelist`;
+
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+        dataref.value = data.data.data;
+        console.log(dataref.value)
+        dataref.value = dataref.value.filter(item => item.status !== 2)
+        .map(item => ({
+            ...item,
+            outboundmaterialrequest: item.outboundmaterialrequest.filter(material => material.is_aprove === 0 && material.status === 0)
+        }));
+    } else {
+    }
+
     RefDialog.value = true;
     modalHeader.value = 'Reference List';
 };
@@ -177,7 +191,7 @@ watch(() => selecteddata.value, () => {
 });
 
 const openAprove = async () => {
-    const apiUrl = `${apiBaseUrl}/api/outbound/request`;
+    const apiUrl = `${apiBaseUrl}/api/outbound/request/listforapprove`;
 
     const response = await fetch(apiUrl, {
         method: 'GET',
@@ -241,7 +255,7 @@ const initFilters = () => {
                     </template>
                 </Toolbar>
 
-                <pre>{{ datamasters }}</pre>
+                <!-- <pre>{{ datamasters }}</pre> -->
 
                 <DataTable ref="dt" :value="datamasters" lazy :filters="filters" :first="first" @page="onPage($event)"
                     :last="totalRecords" :loading="loading" :totalRecords="totalRecords" dataKey="id"
@@ -345,80 +359,74 @@ const initFilters = () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            <p class="text-primary">{{ slotProps.data.status === 1 ? 'Approval' : 'Request' }}</p>
+                            <p style="color: green;" v-if="slotProps.data.status === 2">Approved</p>
+                            <p class="text-primary" v-else>Request</p>
                         </template>
                     </Column>
                 </DataTable>
 
                 <Dialog v-model:visible="RefDialog" :style="{ width: '90%' }" :header="modalHeader" :modal="true"
                     class="p-fluid">
-                    <DataTable :value="products" v-model:expandedRows="expandedRows" dataKey="id"
+                    <!-- <pre>{{ dataref }}</pre> -->
+                    <DataTable :value="dataref" v-model:expandedRows="expandedRows" dataKey="id"
                         responsiveLayout="scroll">
-                        <Column field="name" header="Reference Doc">
+                        <Column field="ref_code" header="Reference Doc">
                             <template #body="slotProps">
-                                {{ slotProps.data.name }}
+                                {{ slotProps.data.ref_code }}
                             </template>
                         </Column>
                         <Column field="created_at" header="Reference Date">
                             <template #body="slotProps">
-                                {{ slotProps.data.created_at }}
+                                {{ formatDate(slotProps.data.created_at) }}
                             </template>
                         </Column>
-                        <Column field="category" header="Storage Location">
+                        <Column field="sloc" header="Storage Location">
                             <template #body="slotProps">
-                                {{ slotProps.data.category }}
+                                {{ slotProps.data.sloc.name }}
                             </template>
                         </Column>
-                        <Column field="rating" header="Movement Type">
+                        <Column field="mvt" header="Movement Type">
                             <template #body="slotProps">
-                                <Rating :modelValue="slotProps.data.rating" :readonly="true" :cancel="false" />
+                                {{ slotProps.data.mvt.code }}
                             </template>
                         </Column>
-                        <Column field="inventoryStatus" header="Good Recipient">
+                        <Column field="recepient" header="Good Recipient">
                             <template #body="slotProps">
-                                <span
-                                    :class="'product-badge status-' + (slotProps.data.inventoryStatus ? slotProps.data.inventoryStatus.toLowerCase() : '')">{{
-                            slotProps.data.inventoryStatus }}</span>
+                                {{ slotProps.data.recepient.code }}
                             </template>
                         </Column>
-                        <Column field="inventoryStatus" header="Cost Center">
+                        <Column field="costcenter" header="Cost Center">
                             <template #body="slotProps">
-                                <span
-                                    :class="'product-badge status-' + (slotProps.data.inventoryStatus ? slotProps.data.inventoryStatus.toLowerCase() : '')">{{
-                            slotProps.data.inventoryStatus }}</span>
+                                {{ slotProps.data.costcenter.name }}
                             </template>
                         </Column>
-                        <Column field="inventoryStatus" header="Order">
+                        <Column field="order" header="Order">
                             <template #body="slotProps">
-                                <span
-                                    :class="'product-badge status-' + (slotProps.data.inventoryStatus ? slotProps.data.inventoryStatus.toLowerCase() : '')">{{
-                            slotProps.data.inventoryStatus }}</span>
+                                {{ slotProps.data.order }}
                             </template>
                         </Column>
-                        <Column field="inventoryStatus" header="Receiving S. Loc">
+                        <Column field="receivingsloc" header="Receiving S. Loc">
                             <template #body="slotProps">
-                                <span
-                                    :class="'product-badge status-' + (slotProps.data.inventoryStatus ? slotProps.data.inventoryStatus.toLowerCase() : '')">{{
-                            slotProps.data.inventoryStatus }}</span>
+                                {{ slotProps.data.receivingsloc.name }}
                             </template>
                         </Column>
                         <Column header="Action" :expander="true" headerStyle="min-width: 3rem" />
                         <template #expansion="slotProps">
                             <div class="p-3">
-                                <DataTable :value="slotProps.data.orders" responsiveLayout="scroll">
-                                    <Column field="customer" header="Material Code">
+                                <DataTable :value="slotProps.data.outboundmaterialrequest" responsiveLayout="scroll">
+                                    <Column field="code" header="Material Code">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.customer }}
+                                            {{ slotProps.data.material.code }}
                                         </template>
                                     </Column>
-                                    <Column field="date" header="Material Desciption">
+                                    <Column field="desc" header="Material Desciption">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.date }}
+                                            {{ slotProps.data.material.desc }}
                                         </template>
                                     </Column>
                                     <Column field="plant" header="Plant">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.plant }}
+                                            {{ slotProps.data.material.plant.name }}
                                         </template>
                                     </Column>
                                     <Column field="qty" header="Qty">
@@ -426,14 +434,14 @@ const initFilters = () => {
                                             {{ slotProps.data.qty }}
                                         </template>
                                     </Column>
-                                    <Column field="qty" header="UoM">
+                                    <Column field="uom" header="UoM">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.qty }}
+                                            {{ slotProps.data.material.uom.name }}
                                         </template>
                                     </Column>
-                                    <Column field="qty" header="Requirement Date">
+                                    <Column field="date2" header="Requirement Date">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.qty }}
+                                            {{ formatDate(slotProps.data.material.created_at) }}
                                         </template>
                                     </Column>
                                 </DataTable>
@@ -447,13 +455,13 @@ const initFilters = () => {
                     <div class="field">
                         <label for="material_code">Choose your data to aprove</label>
                     </div>
-                    <pre>{{ dataproval }}</pre>
+                    <!-- <pre>{{ dataproval }}</pre> -->
                     <DataTable v-model:selection="selecteddata" :value="dataproval" v-model:expandedRows="expandedRows"
                         dataKey="id" responsiveLayout="scroll">
                         <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                         <Column field="ref_code" header="Reference Doc">
                             <template #body="slotProps">
-                                {{ slotProps.data.ref_code }}
+                                {{ slotProps.data.ref_code ? slotProps.data.ref_code : " - " }}
                             </template>
                         </Column>
                         <Column field="created_at" header="Reference Date">
