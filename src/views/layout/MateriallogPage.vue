@@ -31,7 +31,7 @@ const onPage = async (event) => {
     event.page += 1;
 
     try {
-        const apiUrl = `${apiBaseUrl}/api/material_location?page=${event.page}&sortField=${event.sortField}&sortOrder=${event.sortOrder}&search=${search.value != null ? search.value : ''}&paginate_count=${event.rows}`;
+        const apiUrl = `${apiBaseUrl}/api/material_location?web=1&page=${event.page}&sortField=${event.sortField}&sortOrder=${event.sortOrder}&search=${search.value != null ? search.value : ''}&paginate_count=${event.rows}`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -87,7 +87,7 @@ onBeforeMount(() => {
 
 onMounted(async () => {
     try {
-        const apiUrl = `${apiBaseUrl}/api/material_location`;
+        const apiUrl = `${apiBaseUrl}/api/material_location?web=1`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -322,7 +322,7 @@ const editDatamaster = async (editDatamaster) => {
     }
 
     // Ambil data dari Laravel API
-    const response_bin2 = await fetch(`${apiBaseUrl}/api/master/storage_bin?search=${datamaster.value.sbin.name}`, {
+    const response_bin2 = await fetch(`${apiBaseUrl}/api/master/storage_bin?search=${datamaster.value.sbin?.name}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -476,9 +476,9 @@ const initFilters = () => {
 
                 <DataTable ref="dt" :value="datamasters.data" lazy :filters="filters" :first="first" @page="onPage($event)"
                     :last="totalRecords" :loading="loading" :totalRecords="totalRecords" dataKey="id"
-                    class="p-datatable-gridlines" :paginator="true" @sort="onPage($event)" :rows="10"
+                    class="p-datatable-gridlines" :paginator="true" @sort="onPage($event)" :rows="20"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    :rowsPerPageOptions="[5, 10, 25]"
+                    :rowsPerPageOptions="[10, 20, 50]"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} datamaster"
                     responsiveLayout="scroll">
                     <template #header>
@@ -551,7 +551,7 @@ const initFilters = () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            {{ slotProps.data.sbin.sloc.name }}
+                            {{ slotProps.data.sbin?.sloc?.name }}
                         </template>
                     </Column>
                     <Column field="sloc_description" headerStyle="width:10%;">
@@ -562,7 +562,7 @@ const initFilters = () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            {{ slotProps.data.sbin.sloc.desc }}
+                            {{ slotProps.data.sbin?.sloc?.desc }}
                         </template>
                     </Column>
                     <Column field="s_bin" headerStyle="width:8%;">
@@ -573,7 +573,7 @@ const initFilters = () => {
                             </div>
                         </template>
                         <template #body="slotProps">
-                            {{ slotProps.data.sbin.name }}
+                            {{ slotProps.data.sbin?.name }}
                         </template>
                     </Column>
                     <Column style="text-align: center" headerStyle="width:13%;">
