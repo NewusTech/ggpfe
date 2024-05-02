@@ -13,7 +13,7 @@ onBeforeMount(async () => {
     const storePermission = store.state.permission;
     const storedepartment = store.state.department_name;
 
-    console.log("adsnjikasduihasdbhadshdasbhasdhk", store.state)
+    // console.log("adsnjikasduihasdbhadshdasbhasdhk", store.state)
 
     if (storePermission !== null) {
         permission.value = storePermission;
@@ -150,6 +150,8 @@ const initModel = () => {
                         }
                     ]
                 } : null,
+
+                { label: 'Adjustment', icon: 'pi pi-cog pi-id-card', to: '/adjustment' },
 
                 hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
 
