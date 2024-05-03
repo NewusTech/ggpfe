@@ -261,7 +261,7 @@ const updateInfo2 = async (selectedSlocCode) => {
 
 const updateqty = (qty_fisik, qty) => {
     if (qty_fisik != null & qty != null ) {
-        datamaster.value.qty_adjustment = qty - qty_fisik;
+        datamaster.value.qty_adjustment = qty_fisik - qty;
     }
 };
 
