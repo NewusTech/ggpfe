@@ -153,6 +153,8 @@ const initModel = () => {
 
                 { label: 'Adjustment', icon: 'pi pi-cog pi-id-card', to: '/adjustment' },
 
+                { label: 'Report', icon: 'fas fa-chart-simple', to: '/report'  },
+                
                 hasViewRolePermission ? { label: 'Role', icon: 'fas fa-id-card-clip', to: '/role' } : null,
 
                 hasViewUserPermission ? { label: 'Users', icon: 'far fa-user', to: '/user' } : null
