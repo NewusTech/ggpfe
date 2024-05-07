@@ -205,16 +205,16 @@ const router = createRouter({
                 },
             ]
         },
-        {
-            path: '/landing',
-            name: 'landing',
-            component: () => import('@/views/pages/Landing.vue')
-        },
-        {
-            path: '/pages/notfound',
-            name: 'notfound',
-            component: () => import('@/views/pages/NotFound.vue')
-        },
+        // {
+        //     path: '/landing',
+        //     name: 'landing',
+        //     component: () => import('@/views/pages/Landing.vue')
+        // },
+        // {
+        //     path: '/pages/notfound',
+        //     name: 'notfound',
+        //     component: () => import('@/views/pages/NotFound.vue')
+        // },
         {
             path: '/auth/access',
             name: 'accessDenied',
